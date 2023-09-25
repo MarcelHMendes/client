@@ -19,4 +19,6 @@ while ! ip link show tap7 > /dev/null 2>&1; do
     sleep 5
 done
 
-ip route add default via 100.71.128.1 dev tap7 table 20000
+if [ "$API_ENVIRONMENT" != "dev" ]; then
+    ip route add default via 100.71.128.1 dev tap7 table 20000
+fi
