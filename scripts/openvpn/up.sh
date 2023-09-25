@@ -15,10 +15,10 @@ echo "up $local_ip $ifconfig_ipv6_local" > "var/$daemon_name.updown"
 # echo 0 > /proc/sys/net/ipv4/conf/$dev/rp_filter
 
 if [ -n "$API_ENVIRONMENT" ] && [ "$API_ENVIRONMENT" = "dev" ]; then
-    echo "Skipping api route configuration."
+    echo "Skipping api route configuration." > test.txt
     exit 0
 else
-    echo "API_ENVIRONMENT is not set to 'dev'. Continuing with API route configuration."
+    echo "API_ENVIRONMENT is not set to 'dev'. Continuing with API route configuration." > test.txt
 fi
 
 # Check if the interface is up and running (only prod)
