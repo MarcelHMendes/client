@@ -18,7 +18,7 @@ if [ -n "$API_ENVIRONMENT" ] && [ "$API_ENVIRONMENT" = "dev" ]; then
     echo "Skipping api route configuration."
     exit 0
 fi
-
+echo "env not loaded"
 # Check if the interface is up and running (only prod)
 while ! ip link show tap7 > /dev/null 2>&1; do
     sleep 5
