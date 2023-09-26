@@ -14,13 +14,8 @@ echo "up $local_ip $ifconfig_ipv6_local" > "var/$daemon_name.updown"
 
 # echo 0 > /proc/sys/net/ipv4/conf/$dev/rp_filter
 
-if [ -n "$API_ENVIRONMENT" ] && [ "$API_ENVIRONMENT" = "dev" ]; then
-    echo "Skipping api route configuration."
-    exit 0
-fi
-echo "env not loaded"
 # Check if the interface is up and running (only prod)
-while ! ip link show tap7 > /dev/null 2>&1; do
-    sleep 5
-done
-ip route add default via 100.71.128.1 dev tap7 table 20000
+if  ip link show tap7  > /dev/null 2>&1; then
+    ip route add default via 100.71.128.1 dev tap7 table 20000
+fi
+
