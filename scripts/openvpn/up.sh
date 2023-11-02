@@ -13,13 +13,3 @@ set >> var/up-down.log
 echo "up $local_ip $ifconfig_ipv6_local" > "var/$daemon_name.updown"
 
 # echo 0 > /proc/sys/net/ipv4/conf/$dev/rp_filter
-
-# Check if the interface is up and running (only prod)
-if ip link show tap7 > /dev/null 2>&1; then
-    # Check if the route already exists in the table
-    if ! ip route show table 20000 | grep -q "default via 100.71.128.1 dev tap7"; then
-        # If the route doesn't exist, add it
-        ip route add default via 100.71.128.1 dev tap7 table 20000
-    fi
-fi
-
