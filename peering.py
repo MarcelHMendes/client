@@ -63,7 +63,43 @@ class AnnouncementController:
         except FileNotFoundError:
             pass
 
+    def _get_mux_id(self, egress_mux, mux_file):
+        pattern = r'(\w+)\s+tap(\d+)'
+        matches = re.findall(pattern, mux_file.read())
+        word, mux_id = match
+        return mux_id
+
+    def _get_egress_mux(self, spec):
+        try:
+            egress_mux = spec["muxes"].first()
+        except (KeyError, IndexError) as err:
+            print("Egress mux not found %s" % (err))
+
+    def _set_route(self, prefix, mux_id):
+        ip = IPRoute()
+        try:
+            gateway = "100.%d.128.1" % (64+mux_id)
+            ip.route('add', dst=prefix, gateway=gateway)
+            print(f"Default route via {gateway} added.")
+        except NetlinkError as e:
+            print(f"Netlink error occurred: {e}")
+        except Exception as err:
+            (f"An error occurred: {err}")
+        finally:
+            ip.close()
+
+    def set_egress_traffic(self, prefix, spec):
+        egress_mux = self._get_egress_mux(spec)
+        try:
+            with open("/var/mux2dev.txt") as mux_file:
+                mux_id = self._get_mux_id(egress_mux, mux_file)
+        except FileNotFoundError as err:
+            print("No mux2dev file found %s" % (err))
+
+        self._set_route(prefix, mux_id)
+
     def announce(self, prefix, spec):
+        self.set_egress_traffic(prefix, spec)
         for mux in spec["muxes"]:
             with open(self.__config_file(prefix, mux), "w", encoding="utf8") as fd:
                 fd.write(self.config_template.render(prefix=prefix, spec=spec))
