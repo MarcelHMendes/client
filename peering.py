@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import logging
 import os
 import subprocess
 import sys
@@ -10,6 +11,7 @@ import jinja2
 import jsonschema
 import requests
 
+logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
 class AnnouncementController:
     def __init__(
@@ -60,8 +62,8 @@ class AnnouncementController:
     def withdraw(self, prefix, mux):
         try:
             os.unlink(self.__config_file(prefix, mux))
-        except FileNotFoundError:
-            pass
+        except FileNotFoundError as err:
+            logging.error("Config file not found %s" % (err))
 
     def _get_mux_id(self, egress_mux, mux_file):
         pattern = r'(\w+)\s+tap(\d+)'
@@ -73,18 +75,18 @@ class AnnouncementController:
         try:
             egress_mux = spec["muxes"].first()
         except (KeyError, IndexError) as err:
-            print("Egress mux not found %s" % (err))
+            logging.error("Egress mux not found %s" % (err))
 
     def _set_route(self, prefix, mux_id):
-        ip = IPRoute()
         try:
-            gateway = "100.%d.128.1" % (64+mux_id)
+            ip = IPRoute()
+            gateway = "100.%d.128.1" % (64 + mux_id)
             ip.route('add', dst=prefix, gateway=gateway)
-            print(f"Default route via {gateway} added.")
+            logging.info(f"Default route via {gateway} added.")
         except NetlinkError as e:
-            print(f"Netlink error occurred: {e}")
+            logging.error(f"Netlink error occurred: {e}")
         except Exception as err:
-            (f"An error occurred: {err}")
+            logging.error(f"An error occurred: {err}")
         finally:
             ip.close()
 
@@ -93,8 +95,9 @@ class AnnouncementController:
         try:
             with open("/var/mux2dev.txt") as mux_file:
                 mux_id = self._get_mux_id(egress_mux, mux_file)
+                logging.info("Egress traffic added")
         except FileNotFoundError as err:
-            print("No mux2dev file found %s" % (err))
+            logging.error("No mux2dev file found %s" % (err))
 
         self._set_route(prefix, mux_id)
 
